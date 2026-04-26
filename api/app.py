@@ -5,7 +5,7 @@ import time
 import os
 
 # Connect blockchain folder
-sys.path.append('../blockchain')
+sys.path.append('blockchain')
 from blockchain import Blockchain
 
 app = Flask(__name__)
@@ -103,6 +103,11 @@ def blocked():
 @app.route("/healing", methods=["GET"])
 def healing():
     return jsonify({"healing_logs": data["healing_logs"]})
+
+
+@app.route("/test")
+def test():
+    return "API WORKING"
 
 
 # 🚀 Run for deployment (Render compatible)

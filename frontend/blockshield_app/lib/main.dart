@@ -24,11 +24,9 @@ class Dashboard extends StatefulWidget {
 
 class _DashboardState extends State<Dashboard> {
   Map<String, dynamic>? data;
+  bool alertShown = false;
 
-  // ✅ UPDATE THIS IF IP CHANGES
-  final String baseUrl = "http://10.65.130.45:5000";
-
-  bool alertShown = false; // ⚠️ prevent repeated alerts
+  final String baseUrl = "https://blockshield.onrender.com";
 
   @override
   void initState() {
@@ -41,6 +39,7 @@ class _DashboardState extends State<Dashboard> {
     });
   }
 
+  // 📊 FETCH STATUS DATA
   Future<void> fetchData() async {
     try {
       final res = await http.get(Uri.parse("$baseUrl/status"));
@@ -52,13 +51,12 @@ class _DashboardState extends State<Dashboard> {
           data = jsonData;
         });
 
-        // ⚠️ Show alert ONLY once when HIGH
+        // ⚠️ Alert only once
         if (jsonData["threat_level"] == "HIGH" && !alertShown) {
           alertShown = true;
           showAlert();
         }
 
-        // 🔄 Reset alert if threat reduces
         if (jsonData["threat_level"] != "HIGH") {
           alertShown = false;
         }
@@ -68,13 +66,13 @@ class _DashboardState extends State<Dashboard> {
     }
   }
 
+  // 🚨 ALERT POPUP
   void showAlert() {
     Future.delayed(Duration.zero, () {
       if (context.mounted) {
         showDialog(
           context: context,
           builder: (_) {
-            // ⏳ Auto close after 3 sec
             Future.delayed(Duration(seconds: 3), () {
               if (Navigator.canPop(context)) {
                 Navigator.of(context).pop();
@@ -91,6 +89,22 @@ class _DashboardState extends State<Dashboard> {
     });
   }
 
+  // 🚀 TEST ATTACK API
+  Future<void> sendTestAttack() async {
+    try {
+      await http.post(
+        Uri.parse("$baseUrl/attack"),
+        headers: {"Content-Type": "application/json"},
+        body: json.encode({
+          "ip": "192.168.1.${DateTime.now().second}",
+          "type": "TEST_ATTACK"
+        }),
+      );
+    } catch (e) {
+      print("Attack send error: $e");
+    }
+  }
+
   Color getThreatColor(String level) {
     if (level == "HIGH") return Colors.red;
     if (level == "MEDIUM") return Colors.orange;
@@ -102,7 +116,7 @@ class _DashboardState extends State<Dashboard> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        title: Text("BlockShield Dashboard"),
+        title: Text("BlockShield Dashboard 🌐"),
         backgroundColor: Colors.black,
       ),
       body: data == null
@@ -182,7 +196,7 @@ class _DashboardState extends State<Dashboard> {
 
                   SizedBox(height: 20),
 
-                  // 🛠️ Self-Healing Logs
+                  // 🛠️ Healing Logs
                   Container(
                     padding: EdgeInsets.all(15),
                     decoration: BoxDecoration(
@@ -205,6 +219,14 @@ class _DashboardState extends State<Dashboard> {
                         }).toList(),
                       ],
                     ),
+                  ),
+
+                  SizedBox(height: 30),
+
+                  // 🚀 TEST BUTTON
+                  ElevatedButton(
+                    onPressed: sendTestAttack,
+                    child: Text("Simulate Attack 🚀"),
                   ),
                 ],
               ),
